@@ -1,264 +1,401 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Colony Frontier</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Colony Frontier</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
 
-    body {
-      font-family: 'Orbitron', sans-serif;
-      background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
-      color: #eee;
-      text-align: center;
-      padding: 30px;
-    }
-    button {
-      font-size: 1rem;
-      padding: 10px 16px;
-      margin: 10px;
-      background-color: #2e2e2e;
-      color: #eee;
-      border: 1px solid #555;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #444;
-    }
-    .section {
-      margin-top: 40px;
-      border-top: 1px solid #333;
-      padding-top: 20px;
-    }
-    audio {
-      display: none;
-    }
-  </style>
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0;
+    height: 100vh;
+    font-family: 'Orbitron', sans-serif;
+    background: #0a0a0a;
+    color: #eee;
+    overflow: hidden;
+  }
+
+  /* Layout */
+  #app {
+    display: flex;
+    height: 100%;
+    width: 100%;
+  }
+
+  /* Colony section with background */
+  #colony-view {
+    flex: 1.4;
+    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80') no-repeat center center/cover;
+    position: relative;
+    box-shadow: inset 0 0 60px #0a0a0acc;
+  }
+
+  /* Overlay with colony status text */
+  #colony-status {
+    position: absolute;
+    top: 20px; left: 20px; right: 20px;
+    background: rgba(0,0,0,0.6);
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    text-align: center;
+    user-select: none;
+  }
+
+  /* Side panel for controls */
+  #side-panel {
+    flex: 0.7;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -5px 0 20px #000;
+  }
+
+  /* Tabs nav */
+  #tabs {
+    display: flex;
+    background: #222;
+  }
+  #tabs button {
+    flex: 1;
+    background: #222;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 0;
+    color: #eee;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 -6px 0 #000;
+    transform: translateZ(0);
+  }
+  #tabs button:hover {
+    background: #2e2e2e;
+  }
+  #tabs button.active {
+    border-bottom-color: #48a9e6;
+    background: #111;
+    box-shadow: inset 0 -6px 10px #48a9e6;
+  }
+
+  /* Tab content area */
+  #tab-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #111;
+    box-shadow: inset 0 0 40px #000;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Buttons with “pop off the screen” effect */
+  .btn {
+    display: inline-block;
+    background: #2e2e2e;
+    color: #eee;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin: 8px 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow:
+      0 3px 0 #1a1a1a,
+      0 6px 10px #0008;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background 0.3s ease,
+      box-shadow 0.2s ease,
+      transform 0.15s ease;
+  }
+  .btn:hover {
+    background: #444;
+    box-shadow:
+      0 6px 0 #111,
+      0 12px 20px #000c;
+    transform: translateY(-2px);
+  }
+  .btn:active {
+    transform: translateY(1px);
+    box-shadow:
+      0 2px 0 #111,
+      0 4px 8px #000c;
+  }
+
+  /* Stats list style */
+  .stats-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  .stats-list li {
+    margin-bottom: 6px;
+  }
+  .stats-list li span.value {
+    float: right;
+    font-weight: 700;
+    color: #48a9e6;
+  }
+
+  /* Settings gear */
+  #settings {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    fill: #eee;
+    transition: opacity 0.3s ease;
+    z-index: 20;
+  }
+  #settings:hover {
+    opacity: 0.8;
+  }
+
+  /* Dropdown menu for settings */
+  #settings-menu {
+    position: absolute;
+    top: 56px;
+    right: 16px;
+    background: #222;
+    border-radius: 8px;
+    box-shadow: 0 0 12px #0008;
+    width: 180px;
+    display: none;
+    flex-direction: column;
+    z-index: 30;
+  }
+  #settings-menu.show {
+    display: flex;
+  }
+
+  /* Settings menu buttons */
+  #settings-menu button {
+    border: none;
+    background: transparent;
+    color: #eee;
+    text-align: left;
+    padding: 14px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #settings-menu button:hover {
+    background: #444;
+  }
+  /* Sound icon with line-through when muted */
+  #sound-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: opacity 0.3s ease;
+  }
+  #sound-btn.muted {
+    opacity: 0.6;
+  }
+  #sound-btn.muted svg {
+    stroke: red;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  /* Scrollbar styling */
+  #tab-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  #tab-content::-webkit-scrollbar-thumb {
+    background-color: #48a9e6aa;
+    border-radius: 8px;
+  }
+</style>
 </head>
 <body>
-  <h1>Colony Frontier</h1>
-  <p>You are the last hope for establishing a human outpost on an uncharted planet. Every decision counts.</p>
+<div id="app">
 
-  <audio id="bgMusic" autoplay loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f62c6cb1a.mp3?filename=space-ambient-110126.mp3" type="audio/mpeg">
-  </audio>
-  <button onclick="toggleSound()">Toggle Sound</button>
+  <!-- Colony section with background and status -->
+  <section id="colony-view">
+    <div id="colony-status">
+      <div><strong>Colony Status:</strong></div>
+      <ul class="stats-list">
+        <li>Colonists Supported <span id="colonists" class="value">0</span></li>
+        <li>Status <span id="status" class="value">Struggling</span></li>
+        <li>Crisis Level <span id="crisis" class="value">0</span></li>
+      </ul>
+      <p style="font-style: italic; font-size: 0.9rem; margin-top: 10px;">As the colony grows, so does the burden of existence...</p>
+    </div>
 
-  <h2>Resources</h2>
-  <p>Minerals: <span id="minerals">0</span></p>
-  <p>Energy: <span id="energy">0</span></p>
-  <p>Water: <span id="water">0</span></p>
-  <p>Metal: <span id="metal">0</span></p>
-  <p>Plastics: <span id="plastics">0</span></p>
-  <p>Toolkits: <span id="toolkits">0</span></p>
-  <p>Alien Tech: <span id="alienTech">0</span></p>
-  <p>Rare Crystals: <span id="rareCrystals">0</span></p>
+    <!-- Settings gear icon -->
+    <svg id="settings" viewBox="0 0 24 24" aria-label="Settings Gear" title="Settings" tabindex="0" role="button" aria-pressed="false">
+      <path fill="none" stroke="currentColor" stroke-width="2" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 15a7.92 7.92 0 0 0 0-6l2.1-1.6-2.3-3.7-2.5 1a7.9 7.9 0 0 0-3.5-2l-.4-2.7H9l-.4 2.7a7.9 7.9 0 0 0-3.5 2l-2.5-1-2.3 3.7 2.1 1.6a7.92 7.92 0 0 0 0 6l-2.1 1.6 2.3 3.7 2.5-1a7.9 7.9 0 0 0 3.5 2l.4 2.7h4l.4-2.7a7.9 7.9 0 0 0 3.5-2l2.5 1 2.3-3.7z" />
+    </svg>
+    <div id="settings-menu" role="menu" aria-hidden="true">
+      <button id="sound-btn" role="menuitem" aria-pressed="false" title="Toggle Sound">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="3 9 9 9 13 5 13 19 9 15 3 15" />
+          <line x1="16" y1="8" x2="20" y2="16" />
+          <line x1="20" y1="8" x2="16" y2="16" />
+        </svg>
+        Sound: On
+      </button>
+      <button id="save-btn" role="menuitem" title="Save Game">Save Game</button>
+      <button id="load-btn" role="menuitem" title="Load Game">Load Game</button>
+    </div>
+  </section>
 
-  <button onclick="mineMinerals()">Mine Minerals</button>
-  <button onclick="gatherWater()">Gather Water</button>
-  <button onclick="generateEnergy()">Generate Energy</button>
-  <button onclick="refineMetal()">Refine Metal (50 Minerals)</button>
-  <button onclick="synthesizePlastics()">Synthesize Plastics (30 Energy)</button>
+  <!-- Side panel with tabs -->
+  <aside id="side-panel" role="main" aria-label="Game Controls">
+    <nav id="tabs" role="tablist" aria-label="Game Tabs">
+      <button class="active" data-tab="mining" role="tab" aria-selected="true" tabindex="0">Mining</button>
+      <button data-tab="crafting" role="tab" aria-selected="false" tabindex="-1">Crafting</button>
+      <button data-tab="synthesizing" role="tab" aria-selected="false" tabindex="-1">Synthesizing</button>
+    </nav>
+    <section id="tab-content" role="tabpanel" tabindex="0">
+      <!-- Mining Tab -->
+      <div class="tab-panel" data-content="mining">
+        <ul class="stats-list">
+          <li>Minerals <span id="minerals" class="value">0</span></li>
+          <li>Rare Crystals <span id="rareCrystals" class="value">0</span></li>
+          <li>Alien Tech <span id="alienTech" class="value">0</span></li>
+        </ul>
+        <button class="btn" id="mineMineralsBtn">Mine Minerals</button>
+      </div>
 
-  <div class="section">
-    <h2>Base Camp</h2>
-    <p>Habitat Modules: <span id="habitats">0</span></p>
-    <button onclick="buildHabitat()">Build Habitat (50 Metal, 30 Plastics, 50 Water)</button>
+      <!-- Crafting Tab -->
+      <div class="tab-panel" data-content="crafting" hidden>
+        <ul class="stats-list">
+          <li>Metal <span id="metal" class="value">0</span></li>
+          <li>Plastics <span id="plastics" class="value">0</span></li>
+          <li>Toolkits <span id="toolkits" class="value">0</span></li>
+        </ul>
+        <button class="btn" id="refineMetalBtn">Refine Metal (50 Minerals)</button>
+        <button class="btn" id="synthesizePlasticsBtn">Synthesize Plastics (30 Energy)</button>
+        <button class="btn" id="craftToolkitBtn">Craft Toolkit (20 Metal, 10 Plastics)</button>
+      </div>
 
-    <p>Solar Panels: <span id="panels">0</span></p>
-    <button onclick="buildPanel()">Build Solar Panel (30 Metal, 20 Plastics)</button>
+      <!-- Synthesizing Tab -->
+      <div class="tab-panel" data-content="synthesizing" hidden>
+        <ul class="stats-list">
+          <li>Energy <span id="energy" class="value">0</span></li>
+          <li>Solar Panels <span id="panels" class="value">0</span></li>
+          <li>Water Extractors <span id="extractors" class="value">0</span></li>
+          <li>Water <span id="water" class="value">0</span></li>
+          <li>Habitat Modules <span id="habitats" class="value">0</span></li>
+          <li>Colonists Supported <span id="colonists2" class="value">0</span></li>
+        </ul>
+        <button class="btn" id="generateEnergyBtn">Generate Energy</button>
+        <button class="btn" id="buildPanelBtn">Build Solar Panel (30 Metal, 20 Plastics)</button>
+        <button class="btn" id="buildExtractorBtn">Build Extractor (40 Metal)</button>
+        <button class="btn" id="buildHabitatBtn">Build Habitat (50 Metal, 30 Plastics, 50 Water)</button>
+      </div>
+    </section>
+  </aside>
+</div>
 
-    <p>Water Extractors: <span id="extractors">0</span></p>
-    <button onclick="buildExtractor()">Build Extractor (40 Metal)</button>
+<!-- Background music audio element -->
+<audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f62c6cb1a.mp3?filename=space-ambient-110126.mp3" autoplay></audio>
 
-    <p>Toolkits: <span id="toolkits">0</span></p>
-    <button onclick="craftToolkit()">Craft Toolkit (20 Metal, 10 Plastics)</button>
-  </div>
+<script>
+  // Game state variables
+  let minerals = 0, energy = 0, water = 0;
+  let metal = 0, plastics = 0, toolkits = 0;
+  let alienTech = 0, rareCrystals = 0;
+  let habitats = 0, panels = 0, extractors = 0;
+  let colonists = 0, crisisLevel = 0;
+  let gameIntensity = 1;
 
-  <div class="section">
-    <h2>Colony Status</h2>
-    <p>Colonists Supported: <span id="colonists">0</span></p>
-    <p>Status: <span id="status">Struggling</span></p>
-    <p><i>As the colony grows, so does the burden of existence...</i></p>
-    <p>Crisis Level: <span id="crisis">0</span></p>
-  </div>
+  // DOM elements cache
+  const elements = {
+    minerals: document.getElementById('minerals'),
+    energy: document.getElementById('energy'),
+    water: document.getElementById('water'),
+    metal: document.getElementById('metal'),
+    plastics: document.getElementById('plastics'),
+    toolkits: document.getElementById('toolkits'),
+    alienTech: document.getElementById('alienTech'),
+    rareCrystals: document.getElementById('rareCrystals'),
+    habitats: document.getElementById('habitats'),
+    panels: document.getElementById('panels'),
+    extractors: document.getElementById('extractors'),
+    colonists: document.getElementById('colonists'),
+    colonists2: document.getElementById('colonists2'),
+    crisis: document.getElementById('crisis'),
+    status: document.getElementById('status'),
+    bgMusic: document.getElementById('bgMusic'),
+    soundBtn: document.getElementById('sound-btn'),
+    settingsMenu: document.getElementById('settings-menu'),
+    settingsIcon: document.getElementById('settings'),
+    saveBtn: document.getElementById('save-btn'),
+    loadBtn: document.getElementById('load-btn'),
+  };
 
-  <div class="section">
-    <h2>Game Control</h2>
-    <button onclick="saveGame()">Save Game</button>
-    <button onclick="loadGame()">Load Game</button>
-    <button onclick="resetGame()">Reset Game</button>
-  </div>
-
-  <script>
-    let minerals = 0, energy = 0, water = 0;
-    let metal = 0, plastics = 0, toolkits = 0;
-    let alienTech = 0, rareCrystals = 0;
-    let habitats = 0, panels = 0, extractors = 0;
-    let colonists = 0, crisisLevel = 0;
-    let gameIntensity = 1;
-
-    function toggleSound() {
-      const audio = document.getElementById('bgMusic');
-      audio.muted = !audio.muted;
+  // Toggle sound on/off and update button style
+  function toggleSound() {
+    const audio = elements.bgMusic;
+    audio.muted = !audio.muted;
+    updateSoundButton();
+  }
+  function updateSoundButton() {
+    const soundBtn = document.getElementById('sound-btn');
+    if(elements.bgMusic.muted){
+      soundBtn.classList.add('muted');
+      soundBtn.querySelector('svg').style.stroke = 'red';
+      soundBtn.setAttribute('aria-pressed', 'true');
+      soundBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 9 9 9 13 5 13 19 9 15 3 15"></polygon>
+        <line x1="16" y1="8" x2="20" y2="16"></line>
+        <line x1="20" y1="8" x2="16" y2="16"></line>
+        </svg> Sound: Off`;
+    } else {
+      soundBtn.classList.remove('muted');
+      soundBtn.querySelector('svg').style.stroke = '';
+      soundBtn.setAttribute('aria-pressed', 'false');
+      soundBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 9 9 9 13 5 13 19 9 15 3 15"></polygon>
+        <line x1="16" y1="8" x2="20" y2="16"></line>
+        <line x1="20" y1="8" x2="16" y2="16"></line>
+        </svg> Sound: On`;
     }
+  }
 
-    function mineMinerals() {
-      minerals += 5;
-      if (Math.random() < 0.05) rareCrystals++;
-      if (Math.random() < 0.02) alienTech++;
-      updateDisplay();
-    }
+  // Toggle settings menu dropdown visibility
+  function toggleSettingsMenu() {
+    const menu = elements.settingsMenu;
+    const isShown = menu.classList.toggle('show');
+    elements.settingsIcon.setAttribute('aria-pressed', isShown.toString());
+    menu.setAttribute('aria-hidden', (!isShown).toString());
+  }
 
-    function gatherWater() {
-      water += extractors > 0 ? extractors * 2 : 1;
-      updateDisplay();
-    }
+  // Save game state to localStorage
+  function saveGame() {
+    const saveData = {
+      minerals, energy, water,
+      metal, plastics, toolkits,
+      alienTech, rareCrystals,
+      habitats, panels, extractors,
+      colonists, crisisLevel, gameIntensity
+    };
+    localStorage.setItem("colonyFrontierSave", JSON.stringify(saveData));
+    alert("Game saved.");
+  }
 
-    function generateEnergy() {
-      energy += panels > 0 ? panels * 5 : 1;
-      updateDisplay();
-    }
-
-    function refineMetal() {
-      if (minerals >= 50) {
-        minerals -= 50;
-        metal += 10;
-        updateDisplay();
-      }
-    }
-
-    function synthesizePlastics() {
-      if (energy >= 30) {
-        energy -= 30;
-        plastics += 10;
-        updateDisplay();
-      }
-    }
-
-    function buildHabitat() {
-      if (metal >= 50 && plastics >= 30 && water >= 50) {
-        metal -= 50;
-        plastics -= 30;
-        water -= 50;
-        habitats++;
-        colonists += 5;
-        updateDisplay();
-      }
-    }
-
-    function buildPanel() {
-      if (metal >= 30 && plastics >= 20) {
-        metal -= 30;
-        plastics -= 20;
-        panels++;
-        updateDisplay();
-      }
-    }
-
-    function buildExtractor() {
-      if (metal >= 40) {
-        metal -= 40;
-        extractors++;
-        updateDisplay();
-      }
-    }
-
-    function craftToolkit() {
-      if (metal >= 20 && plastics >= 10) {
-        metal -= 20;
-        plastics -= 10;
-        toolkits++;
-        updateDisplay();
-      }
-    }
-
-    function updateDisplay() {
-      document.getElementById('minerals').textContent = Math.floor(minerals);
-      document.getElementById('energy').textContent = Math.floor(energy);
-      document.getElementById('water').textContent = Math.floor(water);
-      document.getElementById('metal').textContent = Math.floor(metal);
-      document.getElementById('plastics').textContent = Math.floor(plastics);
-      document.getElementById('toolkits').textContent = toolkits;
-      document.getElementById('alienTech').textContent = alienTech;
-      document.getElementById('rareCrystals').textContent = rareCrystals;
-      document.getElementById('habitats').textContent = habitats;
-      document.getElementById('panels').textContent = panels;
-      document.getElementById('extractors').textContent = extractors;
-      document.getElementById('colonists').textContent = colonists;
-      document.getElementById('crisis').textContent = crisisLevel;
-
-      let status = "Struggling";
-      if (colonists > 20 && energy > 100 && water > 100) status = "Stable";
-      if (colonists > 100) status = "Overwhelmed";
-      if (energy < colonists * 2 || water < colonists * 2) status = "Critical";
-      if (metal > 500 && habitats > 20) status = "Overdeveloped";
-
-      document.getElementById("status").textContent = status;
-    }
-
-    function saveGame() {
-      const saveData = {
-        minerals, energy, water,
-        metal, plastics, toolkits,
-        alienTech, rareCrystals,
-        habitats, panels, extractors,
-        colonists, crisisLevel, gameIntensity
-      };
-      localStorage.setItem("colonyFrontierSave", JSON.stringify(saveData));
-    }
-
-    function loadGame() {
-      const data = localStorage.getItem("colonyFrontierSave");
-      if (data) {
-        const save = JSON.parse(data);
-        minerals = save.minerals || 0;
-        energy = save.energy || 0;
-        water = save.water || 0;
-        metal = save.metal || 0;
-        plastics = save.plastics || 0;
-        toolkits = save.toolkits || 0;
-        alienTech = save.alienTech || 0;
-        rareCrystals = save.rareCrystals || 0;
-        habitats = save.habitats || 0;
-        panels = save.panels || 0;
-        extractors = save.extractors || 0;
-        colonists = save.colonists || 0;
-        crisisLevel = save.crisisLevel || 0;
-        gameIntensity = save.gameIntensity || 1;
-        updateDisplay();
-      }
-    }
-
-    function resetGame() {
-      if (confirm("Are you sure you want to reset the game?")) {
-        minerals = energy = water = metal = plastics = toolkits = alienTech = rareCrystals = habitats = panels = extractors = colonists = crisisLevel = 0;
-        gameIntensity = 1;
-        localStorage.removeItem("colonyFrontierSave");
-        updateDisplay();
-      }
-    }
-
-    setInterval(() => {
-      if (colonists > 0) {
-        energy -= colonists * 0.2;
-        water -= colonists * 0.1;
-        if (energy < 0) energy = 0;
-        if (water < 0) water = 0;
-
-        if (energy < colonists * 0.5 || water < colonists * 0.5) crisisLevel++;
-        else if (crisisLevel > 0) crisisLevel--;
-      }
-      updateDisplay();
-      saveGame();
-    }, 5000);
-
-    window.onload = () => {
-      loadGame();
-    }
-  </script>
-</body>
-</html>
+  // Load game state from localStorage
+  function loadGame() {
+    const data = localStorage.getItem("colonyFrontierSave");
+    if (data) {
+      const save = JSON.parse(data);
+      minerals = save.minerals || 0;
+      energy = save.energy || 0;
+      water = save.water || 0
