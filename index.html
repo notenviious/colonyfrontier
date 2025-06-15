@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Colony Frontier</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+      color: #eee;
+      text-align: center;
+      padding: 30px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px 16px;
+      margin: 10px;
+      background-color: #2e2e2e;
+      color: #eee;
+      border: 1px solid #555;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #444;
+    }
+    .section {
+      margin-top: 40px;
+      border-top: 1px solid #333;
+      padding-top: 20px;
+    }
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Colony Frontier</h1>
+  <p>You are the last hope for establishing a human outpost on an uncharted planet. Every decision counts.</p>
+
+  <audio id="bgMusic" autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f62c6cb1a.mp3?filename=space-ambient-110126.mp3" type="audio/mpeg">
+  </audio>
+  <button onclick="toggleSound()">Toggle Sound</button>
+
+  <h2>Resources</h2>
+  <p>Minerals: <span id="minerals">0</span></p>
+  <p>Energy: <span id="energy">0</span></p>
+  <p>Water: <span id="water">0</span></p>
+  <p>Metal: <span id="metal">0</span></p>
+  <p>Plastics: <span id="plastics">0</span></p>
+  <p>Toolkits: <span id="toolkits">0</span></p>
+  <p>Alien Tech: <span id="alienTech">0</span></p>
+  <p>Rare Crystals: <span id="rareCrystals">0</span></p>
+
+  <button onclick="mineMinerals()">Mine Minerals</button>
+  <button onclick="gatherWater()">Gather Water</button>
+  <button onclick="generateEnergy()">Generate Energy</button>
+  <button onclick="refineMetal()">Refine Metal (50 Minerals)</button>
+  <button onclick="synthesizePlastics()">Synthesize Plastics (30 Energy)</button>
+
+  <div class="section">
+    <h2>Base Camp</h2>
+    <p>Habitat Modules: <span id="habitats">0</span></p>
+    <button onclick="buildHabitat()">Build Habitat (50 Metal, 30 Plastics, 50 Water)</button>
+
+    <p>Solar Panels: <span id="panels">0</span></p>
+    <button onclick="buildPanel()">Build Solar Panel (30 Metal, 20 Plastics)</button>
+
+    <p>Water Extractors: <span id="extractors">0</span></p>
+    <button onclick="buildExtractor()">Build Extractor (40 Metal)</button>
+
+    <p>Toolkits: <span id="toolkits">0</span></p>
+    <button onclick="craftToolkit()">Craft Toolkit (20 Metal, 10 Plastics)</button>
+  </div>
+
+  <div class="section">
+    <h2>Colony Status</h2>
+    <p>Colonists Supported: <span id="colonists">0</span></p>
+    <p>Status: <span id="status">Struggling</span></p>
+    <p><i>As the colony grows, so does the burden of existence...</i></p>
+    <p>Crisis Level: <span id="crisis">0</span></p>
+  </div>
+
+  <div class="section">
+    <h2>Game Control</h2>
+    <button onclick="saveGame()">Save Game</button>
+    <button onclick="loadGame()">Load Game</button>
+    <button onclick="resetGame()">Reset Game</button>
+  </div>
+
+  <script>
+    let minerals = 0, energy = 0, water = 0;
+    let metal = 0, plastics = 0, toolkits = 0;
+    let alienTech = 0, rareCrystals = 0;
+    let habitats = 0, panels = 0, extractors = 0;
+    let colonists = 0, crisisLevel = 0;
+    let gameIntensity = 1;
+
+    function toggleSound() {
+      const audio = document.getElementById('bgMusic');
+      audio.muted = !audio.muted;
+    }
+
+    function mineMinerals() {
+      minerals += 5;
+      if (Math.random() < 0.05) rareCrystals++;
+      if (Math.random() < 0.02) alienTech++;
+      updateDisplay();
+    }
+
+    function gatherWater() {
+      water += extractors > 0 ? extractors * 2 : 1;
+      updateDisplay();
+    }
+
+    function generateEnergy() {
+      energy += panels > 0 ? panels * 5 : 1;
+      updateDisplay();
+    }
+
+    function refineMetal() {
+      if (minerals >= 50) {
+        minerals -= 50;
+        metal += 10;
+        updateDisplay();
+      }
+    }
+
+    function synthesizePlastics() {
+      if (energy >= 30) {
+        energy -= 30;
+        plastics += 10;
+        updateDisplay();
+      }
+    }
+
+    function buildHabitat() {
+      if (metal >= 50 && plastics >= 30 && water >= 50) {
+        metal -= 50;
+        plastics -= 30;
+        water -= 50;
+        habitats++;
+        colonists += 5;
+        updateDisplay();
+      }
+    }
+
+    function buildPanel() {
+      if (metal >= 30 && plastics >= 20) {
+        metal -= 30;
+        plastics -= 20;
+        panels++;
+        updateDisplay();
+      }
+    }
+
+    function buildExtractor() {
+      if (metal >= 40) {
+        metal -= 40;
+        extractors++;
+        updateDisplay();
+      }
+    }
+
+    function craftToolkit() {
+      if (metal >= 20 && plastics >= 10) {
+        metal -= 20;
+        plastics -= 10;
+        toolkits++;
+        updateDisplay();
+      }
+    }
+
+    function updateDisplay() {
+      document.getElementById('minerals').textContent = Math.floor(minerals);
+      document.getElementById('energy').textContent = Math.floor(energy);
+      document.getElementById('water').textContent = Math.floor(water);
+      document.getElementById('metal').textContent = Math.floor(metal);
+      document.getElementById('plastics').textContent = Math.floor(plastics);
+      document.getElementById('toolkits').textContent = toolkits;
+      document.getElementById('alienTech').textContent = alienTech;
+      document.getElementById('rareCrystals').textContent = rareCrystals;
+      document.getElementById('habitats').textContent = habitats;
+      document.getElementById('panels').textContent = panels;
+      document.getElementById('extractors').textContent = extractors;
+      document.getElementById('colonists').textContent = colonists;
+      document.getElementById('crisis').textContent = crisisLevel;
+
+      let status = "Struggling";
+      if (colonists > 20 && energy > 100 && water > 100) status = "Stable";
+      if (colonists > 100) status = "Overwhelmed";
+      if (energy < colonists * 2 || water < colonists * 2) status = "Critical";
+      if (metal > 500 && habitats > 20) status = "Overdeveloped";
+
+      document.getElementById("status").textContent = status;
+    }
+
+    function saveGame() {
+      const saveData = {
+        minerals, energy, water,
+        metal, plastics, toolkits,
+        alienTech, rareCrystals,
+        habitats, panels, extractors,
+        colonists, crisisLevel, gameIntensity
+      };
+      localStorage.setItem("colonyFrontierSave", JSON.stringify(saveData));
+    }
+
+    function loadGame() {
+      const data = localStorage.getItem("colonyFrontierSave");
+      if (data) {
+        const save = JSON.parse(data);
+        minerals = save.minerals || 0;
+        energy = save.energy || 0;
+        water = save.water || 0;
+        metal = save.metal || 0;
+        plastics = save.plastics || 0;
+        toolkits = save.toolkits || 0;
+        alienTech = save.alienTech || 0;
+        rareCrystals = save.rareCrystals || 0;
+        habitats = save.habitats || 0;
+        panels = save.panels || 0;
+        extractors = save.extractors || 0;
+        colonists = save.colonists || 0;
+        crisisLevel = save.crisisLevel || 0;
+        gameIntensity = save.gameIntensity || 1;
+        updateDisplay();
+      }
+    }
+
+    function resetGame() {
+      if (confirm("Are you sure you want to reset the game?")) {
+        minerals = energy = water = metal = plastics = toolkits = alienTech = rareCrystals = habitats = panels = extractors = colonists = crisisLevel = 0;
+        gameIntensity = 1;
+        localStorage.removeItem("colonyFrontierSave");
+        updateDisplay();
+      }
+    }
+
+    setInterval(() => {
+      if (colonists > 0) {
+        energy -= colonists * 0.2;
+        water -= colonists * 0.1;
+        if (energy < 0) energy = 0;
+        if (water < 0) water = 0;
+
+        if (energy < colonists * 0.5 || water < colonists * 0.5) crisisLevel++;
+        else if (crisisLevel > 0) crisisLevel--;
+      }
+      updateDisplay();
+      saveGame();
+    }, 5000);
+
+    window.onload = () => {
+      loadGame();
+    }
+  </script>
+</body>
+</html>
